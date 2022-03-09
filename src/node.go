@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	MAXFINGERS    = 161
-	MAXSUCCESSORS = 3
+	MAXFINGERS    = 100
+	MAXSUCCESSORS = 5
 )
 
 var biggest *big.Int //Size of this ring
@@ -168,29 +168,6 @@ func (s *Server) GetSuccessors(_ Nothing, successors *[]string) error {
 		finished <- struct{}{}
 	}
 	<-finished
-	return nil
-}
-
-func (s *Server) FindSuccessor(id *big.Int, reply *string) error {
-	var nPrime string
-	callFS := false
-	finished := make(chan struct{})
-	s.fx <- func(n *Node) {
-		if Between(n.ID, id, HashString(n.Successors[0]), true) {
-			*reply = n.Successors[0]
-		} else {
-			callFS = true
-		}
-		finished <- struct{}{}
-	}
-	<-finished
-	if callFS {
-		nPrime = s.closestPrecedingNode(id)
-		err := Call(nPrime, "Server.FindSuccessor", id, &reply)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -550,38 +527,8 @@ func (s *Server) keepFixingFingers() {
 	}
 }
 
-func (s *Server) fixFingers() error {
-	var address string
-	var next int
-	reply := ""
-	finished := make(chan struct{})
-	s.fx <- func(n *Node) {
-		n.Fingers[1] = n.Successors[0]
-		n.next = n.next + 1
-		if n.next > keySize {
-			n.next = 1
-		}
-		address = net.JoinHostPort(n.Address, n.Port)
-		next = n.next
-		finished <- struct{}{}
-	}
-	<-finished
-	s.FindSuccessor(jump(address, next), &reply)
-	finished2 := make(chan struct{})
-	s.fx <- func(n *Node) {
-		n.Fingers[n.next] = reply
-		for n.next+1 < keySize &&
-			Between(n.ID, jump(address, n.next+1), HashString(reply), false) {
-			n.next += 1
-			n.Fingers[n.next] = reply
-		}
-		finished2 <- struct{}{}
-	}
-	<-finished2
-	return nil
-}
 
-/* Working O(n) version of FindSuccessor
+
 func (s *Server) FindSuccessor(id *big.Int, reply *string) error {
   finished := make(chan struct{})
   s.fx <- func(n *Node) {
@@ -597,9 +544,7 @@ func (s *Server) FindSuccessor(id *big.Int, reply *string) error {
   <-finished
   return nil
 }
-*/
 
-/* Slow fix fingers solution
 func (s *Server) fixFingers() error {
   var next int
   var address string
@@ -629,4 +574,4 @@ func (s *Server) fixFingers() error {
   <-finished2
 
   return nil
-}*/
+}

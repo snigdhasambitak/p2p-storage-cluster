@@ -33,7 +33,7 @@ func main() {
 	ringJoined := false
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	fmt.Println("\nWelcome to Chord v1.0")
+	fmt.Println("\nWelcome to p2p storage cluster")
 	fmt.Println("By Bits")
 	fmt.Println("Type help for a list of commands\n")
 	chord.PrintPrompt()
