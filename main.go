@@ -296,6 +296,9 @@ func main() {
 	//Error handling
 	if err := scanner.Err(); err != nil {
 		chord.PrintPrompt()
-		fmt.Fprintln(os.Stderr, "Reading standard input:", err)
+		_, err := fmt.Fprintln(os.Stderr, "Reading standard input:", err)
+		if err != nil {
+			return 
+		}
 	}
 }
