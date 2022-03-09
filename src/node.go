@@ -171,6 +171,29 @@ func (s *Server) GetSuccessors(_ Nothing, successors *[]string) error {
 	return nil
 }
 
+func (s *Server) FindSuccessor(id *big.Int, reply *string) error {
+	var nPrime string
+	callFS := false
+	finished := make(chan struct{})
+	s.fx <- func(n *Node) {
+		if Between(n.ID, id, HashString(n.Successors[0]), true) {
+			*reply = n.Successors[0]
+		} else {
+			callFS = true
+		}
+		finished <- struct{}{}
+	}
+	<-finished
+	if callFS {
+		nPrime = s.closestPrecedingNode(id)
+		err := Call(nPrime, "Server.FindSuccessor", id, &reply)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *Server) closestPrecedingNode(id *big.Int) string {
 	var result string
 	between := false
@@ -527,51 +550,33 @@ func (s *Server) keepFixingFingers() {
 	}
 }
 
-
-
-func (s *Server) FindSuccessor(id *big.Int, reply *string) error {
-  finished := make(chan struct{})
-  s.fx <- func(n *Node) {
-    var nPrime *string
-    if Between(n.ID, id, HashString(n.Successors[0]), true) {
-      *reply = n.Successors[0]
-    } else {
-      Call(n.Successors[0], "Server.FindSuccessor", id, &nPrime)
-      *reply = *nPrime
-    }
-    finished <- struct{}{}
-  }
-  <-finished
-  return nil
-}
-
 func (s *Server) fixFingers() error {
-  var next int
-  var address string
-  var succ string
-  var exlocation *big.Int
-  finished := make(chan struct{})
-  s.fx <- func(n *Node) {
-    n.next += 1
-  	if n.next > MAXFINGERS-1 {
-  		n.next = 1
-  	}
-    //Calculate the next exact location where next finger could be on ring 1/2, 1/4, 1/8, etc...
-    address = net.JoinHostPort(n.Address, n.Port)
-    next = n.next
-    exlocation = jump(address, n.next)
-
-    finished <-struct{}{}
-  }
-  <-finished
-	//Find immediate successor to exact location calculated above
-  s.FindSuccessor(exlocation, &succ)
-  finished2 := make(chan struct{})
-  s.fx <- func(n *Node) {
-    n.Fingers[n.next] = succ
-    finished2 <-struct{}{}
-  }
-  <-finished2
-
-  return nil
+	var address string
+	var next int
+	reply := ""
+	finished := make(chan struct{})
+	s.fx <- func(n *Node) {
+		n.Fingers[1] = n.Successors[0]
+		n.next = n.next + 1
+		if n.next > keySize {
+			n.next = 1
+		}
+		address = net.JoinHostPort(n.Address, n.Port)
+		next = n.next
+		finished <- struct{}{}
+	}
+	<-finished
+	s.FindSuccessor(jump(address, next), &reply)
+	finished2 := make(chan struct{})
+	s.fx <- func(n *Node) {
+		n.Fingers[n.next] = reply
+		for n.next+1 < keySize &&
+			Between(n.ID, jump(address, n.next+1), HashString(reply), false) {
+			n.next += 1
+			n.Fingers[n.next] = reply
+		}
+		finished2 <- struct{}{}
+	}
+	<-finished2
+	return nil
 }
