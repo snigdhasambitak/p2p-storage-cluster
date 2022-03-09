@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	MAXFINGERS    = 100
-	MAXSUCCESSORS = 5
+	MAXFINGERS    = 161
+	MAXSUCCESSORS = 3
 )
 
 var biggest *big.Int //Size of this ring
