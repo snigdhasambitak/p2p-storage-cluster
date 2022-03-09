@@ -3,8 +3,11 @@ A p2p storage cluster for sharing using consistent hashing
 
 # Execution
 
+ ```
  go run main.go
+ ```
 
+```
 Welcome to Chord v1.0
 By Bits
 Type help for a list of commands
@@ -29,3 +32,4 @@ chord> help
      dumpaddr <addr>   : Show information about the node at the given <addr>
      dumpall           : Show information about all nodes in the active ring
      ping <addr>       : Check if a node is listening on <addr>
+```
