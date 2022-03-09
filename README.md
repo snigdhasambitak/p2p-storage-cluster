@@ -8,7 +8,7 @@ A p2p storage cluster for sharing using consistent hashing
  ```
 
 ```
-Welcome to Chord v1.0
+Welcome to p2p-storage-cluster
 By Bits
 Type help for a list of commands
 
