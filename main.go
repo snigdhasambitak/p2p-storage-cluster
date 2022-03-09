@@ -270,11 +270,20 @@ func main() {
 				var succBucket map[string]string
 				address := net.JoinHostPort(chord.GetLocalAddress(), port)
 				//Get successor
-				chord.Call(address, "Server.GetSuccessors", sendNothing, &gsReply)
+				err := chord.Call(address, "Server.GetSuccessors", sendNothing, &gsReply)
+				if err != nil {
+					return
+				}
 				//Get the bucket of this node
-				chord.Call(address, "Server.GetAll", sendNothing, &succBucket)
+				err = chord.Call(address, "Server.GetAll", sendNothing, &succBucket)
+				if err != nil {
+					return
+				}
 				//Push bucket to successor
-				chord.Call(gsReply[0], "Server.PutAll", succBucket, &success)
+				err = chord.Call(gsReply[0], "Server.PutAll", succBucket, &success)
+				if err != nil {
+					return
+				}
 				//Exit success
 				os.Exit(0)
 			} else {
