@@ -566,7 +566,10 @@ func (s *Server) fixFingers() error {
 		finished <- struct{}{}
 	}
 	<-finished
-	s.FindSuccessor(jump(address, next), &reply)
+	err := s.FindSuccessor(jump(address, next), &reply)
+	if err != nil {
+		return err
+	}
 	finished2 := make(chan struct{})
 	s.fx <- func(n *Node) {
 		n.Fingers[n.next] = reply
