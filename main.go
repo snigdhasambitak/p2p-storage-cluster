@@ -264,7 +264,7 @@ func main() {
 				buffer.WriteString("     ping <addr>       : Check if a node is listening on <addr>\n")
 				fmt.Println(buffer.String())
 			} else if commandTokens[0] == "quit" {
-				chord.PrintPrompt("Shutting down node...")
+				chord.PrintPrompt("Shutting down node and transferring keys...")
 				var success *int
 				var gsReply []string
 				var succBucket map[string]string
@@ -276,6 +276,7 @@ func main() {
 				//Push bucket to successor
 				chord.Call(gsReply[0], "Server.PutAll", succBucket, &success)
 				//Exit success
+				chord.PrintPrompt("all keys transferred now exiting...")
 				os.Exit(0)
 			} else {
 				fmt.Println("Command not recognized")
