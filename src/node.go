@@ -17,12 +17,6 @@ import (
 var biggest *big.Int
 var sendNothing Nothing
 var returnNothing *Nothing
-
-const (
-	maxFingers    = 161
-	maxSuccessors = 3
-)
-
 type Nothing struct{}
 
 type Server struct {
@@ -44,15 +38,10 @@ type Node struct {
 	next        int               //Keeps track of current finger
 }
 
-//Actor pattern - makes sure data is safe for concurrency
-func (s *Server) recieverLoop() {
-	for {
-		select {
-		case f := <-s.fx:
-			f(s.node)
-		}
-	}
-}
+const (
+	maxFingers    = 161
+	maxSuccessors = 3
+)
 
 func CreateServer(n *Node) *Server {
 	biggest = new(big.Int).Exp(big.NewInt(2), big.NewInt(160), big.NewInt(0))
@@ -74,6 +63,17 @@ func Listen(s *Server) {
 	s.active = true
 	go http.Serve(l, nil)
 }
+
+//Actor pattern - makes sure data is safe for concurrency
+func (s *Server) recieverLoop() {
+	for {
+		select {
+		case f := <-s.fx:
+			f(s.node)
+		}
+	}
+}
+
 
 func (s *Server) Create(_ Nothing, _ *Nothing) error {
 	finished := make(chan struct{})

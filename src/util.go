@@ -2,12 +2,12 @@ package src
 
 import (
 	"crypto/sha1"
+	"net"
+	"net/rpc"
 	"fmt"
 	"log"
 	"math/big"
 	"math/rand"
-	"net"
-	"net/rpc"
 )
 
 const keySize = sha1.Size * 8
@@ -24,14 +24,14 @@ func jump(address string, fingerentry int) *big.Int {
 	return new(big.Int).Mod(sum, hashMod)
 }
 
-//Sha-1 hashes a string
+// HashString Sha-1 hashes a string
 func HashString(elt string) *big.Int {
 	hasher := sha1.New()
 	hasher.Write([]byte(elt))
 	return new(big.Int).SetBytes(hasher.Sum(nil))
 }
 
-//Returns true if 'elt' is between 'start' and 'end' in chord ring, false otherwise
+// Returns true if 'elt' is between 'start' and 'end' in chord ring, false otherwise
 //if 'inclusive' is true then 'end' considered in between
 func Between(start, elt, end *big.Int, inclusive bool) bool {
 	if end.Cmp(start) > 0 {
@@ -86,6 +86,7 @@ func Call(address string, method string, request interface{}, reply interface{})
 }
 
 //Create a random string of length n that can include special and uppercase letters
+
 func RandString(n int, special bool, uc bool) string {
 	var ucletters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	var lcletters = []rune("abcdefghijklmnopqrstuvwxyz")
