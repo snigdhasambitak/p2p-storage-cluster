@@ -1,11 +1,6 @@
 # p2p-storage-cluster
 A p2p storage cluster for sharing keys/files between multiple nodes in a cluster using consistent hashing and chord DHT
 
-# Team details 
-
-1. RABINDRA HARLALKA : 2020SC04947
-2. SOURAV RAJ : 2020SC04304
-3. Snigdha Sambit Aryakumar : 2020SC04738
 
 # Implementation Details
 
