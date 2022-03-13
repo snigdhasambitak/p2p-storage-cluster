@@ -16,7 +16,7 @@ We’ll try to explain the basic implementation details below.
 
 Every time, whenever a  node wants to look up a key k, it will pass the query to the closest successor or predecessor (depending on the finger table) of k in its finger table (the “largest” one on the circle whose ID is smaller than k), until a node finds out the key is stored in its immediate successor. With such a finger table, the number of nodes that must be contacted to find a successor in an N-node network is `O(log N)`
 
-![chordDHT](https://github.com/snigdhasambitak/p2p-storage-cluster/blob/main/images/chordDHT.jpeg)
+![chordDHT](images/chordDHT.jpeg)
 
 ```go
 
