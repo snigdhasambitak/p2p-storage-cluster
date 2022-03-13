@@ -80,7 +80,7 @@ As the successor is the first entry of the finger table, we do not need to maint
 2. Notify other nodes to update their predecessors and finger tables.
 3. The new node takes over its responsible keys from its successor
 
-The predecessor of n can be easily obtained from the predecessor of successor(n) (in the previous circle). As for its finger table, there are various initialization methods. The simplest one is to execute find successor queries for all m entries, resulting in O(M\log N) initialization time. A better method is to check whether i{th} entry in the finger table is still correct for the `(i+1){th}` entry. 
+The predecessor of n can be easily obtained from the predecessor of successor(n) (in the previous circle). As for its finger table, there are various initialization methods. The simplest one is to execute find successor queries for all m entries, resulting in `O(M/log N)`initialization time. A better method is to check whether i{th} entry in the finger table is still correct for the `(i+1){th}` entry. 
 This will lead to `O(log² N)`.
 
 get the predecessor
