@@ -73,7 +73,8 @@ As the successor is the first entry of the finger table, we do not need to maint
 2. Notify other nodes to update their predecessors and finger tables.
 3. The new node takes over its responsible keys from its successor
 
-The predecessor of n can be easily obtained from the predecessor of successor(n) (in the previous circle). As for its finger table, there are various initialization methods. The simplest one is to execute find successor queries for all m entries, resulting in O(M\log N) initialization time. A better method is to check whether i{th} entry in the finger table is still correct for the (i+1){th} entry. This will lead to O(log² N).
+The predecessor of n can be easily obtained from the predecessor of successor(n) (in the previous circle). As for its finger table, there are various initialization methods. The simplest one is to execute find successor queries for all m entries, resulting in O(M\log N) initialization time. A better method is to check whether i{th} entry in the finger table is still correct for the `(i+1){th}` entry. 
+This will lead to `O(log² N)`.
 
 ```go
 func (s *Server) GetPredecessor(_ Nothing, predaddress *string) error {
@@ -94,10 +95,10 @@ To ensure correct lookups, all successor pointers must be up to date. Therefore,
 
 The stabilization protocol works as follows:
 
-1. Stabilize(): n asks its successor for its predecessor p and decides whether p should be n‘s successor instead (this is the case if p recently joined the system).
-2. Notify(): notifies n‘s successor of its existence, so it can change its predecessor to n
-3. fixFingers(): updates finger tables/*
-4. checkPredecessor(): Periodically checks in predecessor is alive
+1. `Stabilize()`: n asks its successor for its predecessor p and decides whether p should be n‘s successor instead (this is the case if p recently joined the system).
+2. `Notify()`: notifies n‘s successor of its existence, so it can change its predecessor to n
+3. `fixFingers()`: updates finger tables/*
+4. `checkPredecessor()`: Periodically checks in predecessor is alive
 
 ```go
 func (s *Server) Join(address string, reply *int) error {
