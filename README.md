@@ -12,8 +12,9 @@ We’ll try to explain the basic implementation details below.
    3. This will lead to a `O(N)` query time where N is the number of machines in the ring. 
    4. To avoid the linear search above, it implements a faster search method by requiring each node to keep a finger table containing up to m entries, recall that m is the number of bits in the hash key 
    5. The `i{th}` entry of node n will contain successor `((n+2^{i-1}) mod 2^m)`. 
-   6. The first entry of finger table is actually the node’s immediate successor (and therefore an extra successor field is not needed). 
-   7. Every time a node wants to look up a key k, it will pass the query to the closest successor or predecessor (depending on the finger table) of k in its finger table (the “largest” one on the circle whose ID is smaller than k), until a node finds out the key is stored in its immediate successor. With such a finger table, the number of nodes that must be contacted to find a successor in an N-node network is `O(log N)`
+   6. The first entry of finger table is actually the node’s immediate successor 
+
+Every time, whenever a  node wants to look up a key k, it will pass the query to the closest successor or predecessor (depending on the finger table) of k in its finger table (the “largest” one on the circle whose ID is smaller than k), until a node finds out the key is stored in its immediate successor. With such a finger table, the number of nodes that must be contacted to find a successor in an N-node network is `O(log N)`
 
 ![chordDHT](https://github.com/snigdhasambitak/p2p-storage-cluster/blob/main/images/chordDHT.jpeg)
 
@@ -82,6 +83,7 @@ As the successor is the first entry of the finger table, we do not need to maint
 The predecessor of n can be easily obtained from the predecessor of successor(n) (in the previous circle). As for its finger table, there are various initialization methods. The simplest one is to execute find successor queries for all m entries, resulting in O(M\log N) initialization time. A better method is to check whether i{th} entry in the finger table is still correct for the `(i+1){th}` entry. 
 This will lead to `O(log² N)`.
 
+get the predecessor
 ```go
 func (s *Server) GetPredecessor(_ Nothing, predaddress *string) error {
 	finished := make(chan struct{}, 1)
@@ -93,7 +95,19 @@ func (s *Server) GetPredecessor(_ Nothing, predaddress *string) error {
 	return nil
 }
 ```
+get the Successors
 
+```go
+func (s *Server) GetSuccessors(_ Nothing, successors *[]string) error {
+	finished := make(chan struct{}, 1)
+	s.fx <- func(n *Node) {
+		*successors = n.Successors
+		finished <- struct{}{}
+	}
+	<-finished
+	return nil
+}
+```
 
 ## Stabilization Mechanism
 
