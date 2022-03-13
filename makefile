@@ -1,14 +1,14 @@
-TARGETS=chord
+TARGETS=p2pchord
+
+install
 
 
-all: $(TARGETS)
-
-chord:
-	go build -o chord main.go
+p2pchord:
+	go build -o p2pchord main.go
 
 clean:
 	-rm -f $(TARGETS)
 
 fmt: go fmt
 
-.PHONY: all chord
+.PHONY: all p2pchord
