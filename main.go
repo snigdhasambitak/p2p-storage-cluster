@@ -1,10 +1,10 @@
 package main
 
 import (
+	chord "github.com/snigdhasambitak/p2p-storage-cluster/src"
 	"bufio"
 	"bytes"
 	"fmt"
-	chord "github.com/snigdhasambitak/p2p-storage-cluster/src"
 	"log"
 	"math/big"
 	"math/rand"
@@ -33,8 +33,8 @@ func main() {
 	ringJoined := false
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	fmt.Println("\nWelcome to Chord v1.0")
-	fmt.Println("By Shawn Wonder")
+	fmt.Println("\n Welcome to p2p-storage-cluster v1.0")
+	fmt.Println("By group 107 SDA")
 	fmt.Println("Type help for a list of commands\n")
 	chord.PrintPrompt()
 

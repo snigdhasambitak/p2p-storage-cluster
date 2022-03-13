@@ -161,8 +161,8 @@ We can run the following command and start the node in one terminal. Similarly w
  ```
 
 ```
-Welcome to p2p-storage-cluster
-By Bits
+Welcome to p2p-storage-cluster v1.0
+By group 107 SDA
 Type help for a list of commands
 
 chord> help
