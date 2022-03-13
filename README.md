@@ -20,7 +20,7 @@ Every time, whenever a  node wants to look up a key k, it will pass the query to
 
 ```go
 
-const keySize = sha1.Size * 8
+const keySize = sha1.Size * 2
 
 var two = big.NewInt(2)
 var hashMod = new(big.Int).Exp(big.NewInt(2), big.NewInt(keySize), nil)
