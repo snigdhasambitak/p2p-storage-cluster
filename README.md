@@ -1,5 +1,5 @@
 # p2p-storage-cluster
-A p2p storage cluster for sharing using consistent hashing 
+A p2p storage cluster for sharing keys/files between multiple nodes in a cluster using consistent hashing and chord DHT
 
 # Implementation Details
 
@@ -359,5 +359,5 @@ You should see all the buckets getting realigned and the keys getting redistribu
 
 # Results
 
-The video attaches is a good description of the transfer mechanism and as you can see, when one node is down, the keys from that node get transferred to the successor node.
+The video attached is a good description of the transfer mechanism and as you can see, when one node is down, the keys from that node get transferred to the successor node.
 
