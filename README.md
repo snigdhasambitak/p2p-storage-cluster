@@ -199,7 +199,7 @@ clean:
 ```
 
 # Execution
-We can run the following command and start the node in one terminal. Similarly we can open multiple terminals and make sure that the node joins the iniial ring with a given address and port
+We can run the following command and start the node in one terminal. Similarly we can open multiple terminals and make sure that the node joins the initial ring with a given address and port
 
  ```
  go run main.go
