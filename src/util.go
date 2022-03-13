@@ -81,10 +81,7 @@ func Call(address string, method string, request interface{}, reply interface{})
 	if err = client.Call(method, request, reply); err != nil {
 		log.Fatalf("Error calling "+method+": %v", err)
 	}
-	err = client.Close()
-	if err != nil {
-		return err
-	}
+	client.Close()
 	return err
 }
 

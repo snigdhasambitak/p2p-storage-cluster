@@ -33,8 +33,8 @@ func main() {
 	ringJoined := false
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	fmt.Println("\nWelcome to p2p storage cluster")
-	fmt.Println("By Bits")
+	fmt.Println("\nWelcome to Chord v1.0")
+	fmt.Println("By Shawn Wonder")
 	fmt.Println("Type help for a list of commands\n")
 	chord.PrintPrompt()
 
@@ -72,10 +72,7 @@ func main() {
 					Node = chord.CreateNode(port)
 					Server = chord.CreateServer(Node)
 					chord.Listen(Server)
-					err := Server.Create(sendNothing, returnNothing)
-					if err != nil {
-						return 
-					}
+					Server.Create(sendNothing, returnNothing)
 					serverRunning = true
 				}
 				//Join an existing ring - join <addr>
@@ -86,10 +83,7 @@ func main() {
 					if Node != nil {
 						Server = chord.CreateServer(Node)
 						chord.Listen(Server)
-						err := Server.Join(commandTokens[1], &joinSuccess)
-						if err != nil {
-							return 
-						}
+						Server.Join(commandTokens[1], &joinSuccess)
 						ringJoined = true
 					} else {
 						chord.PrintPrompt("Node has not been created")
@@ -104,10 +98,7 @@ func main() {
 			} else if commandTokens[0] == "ping" {
 				if len(commandTokens) == 2 {
 					var reply *int
-					err := chord.Call(commandTokens[1], "Server.Ping", sendNothing, &reply)
-					if err != nil {
-						return 
-					}
+					chord.Call(commandTokens[1], "Server.Ping", sendNothing, &reply)
 					if reply != nil && *reply == 562 {
 						chord.PrintPrompt("Response recieved from " + commandTokens[1])
 					} else {
@@ -124,18 +115,12 @@ func main() {
 					var reply *int
 					hashedKey := chord.HashString(commandTokens[1])
 					//Determine which node this key should be placed in
-					err := chord.Call(net.JoinHostPort(chord.GetLocalAddress(), port), "Server.FindSuccessor", hashedKey, &fsReply)
-					if err != nil {
-						return
-					}
+					chord.Call(net.JoinHostPort(chord.GetLocalAddress(), port), "Server.FindSuccessor", hashedKey, &fsReply)
 
 					bucket = append(bucket, commandTokens[1])
 					bucket = append(bucket, commandTokens[2])
 					//Place key-value in the correct node
-					err = chord.Call(*fsReply, "Server.Put", bucket, &reply)
-					if err != nil {
-						return
-					}
+					chord.Call(*fsReply, "Server.Put", bucket, &reply)
 					chord.PrintPrompt("[" + commandTokens[1] + "] = " + commandTokens[2] + " added")
 				} else {
 					chord.PrintPrompt("Number of arguments supplied incorrect - usage: put <key> <value>")
@@ -159,17 +144,11 @@ func main() {
 						for k, v := range randKeyVals {
 							bucket = bucket[:0]
 							hashedKey = chord.HashString(k)
-							err := chord.Call(net.JoinHostPort(chord.GetLocalAddress(), port), "Server.FindSuccessor", hashedKey, &fsReply)
-							if err != nil {
-								return
-							}
+							chord.Call(net.JoinHostPort(chord.GetLocalAddress(), port), "Server.FindSuccessor", hashedKey, &fsReply)
 							bucket = append(bucket, k)
 							bucket = append(bucket, v)
 							//Send the key-value pair to node
-							err = chord.Call(*fsReply, "Server.Put", bucket, &reply)
-							if err != nil {
-								return
-							}
+							chord.Call(*fsReply, "Server.Put", bucket, &reply)
 							if *reply == 1 {
 								keysAdded += 1
 							}
@@ -188,14 +167,8 @@ func main() {
 					var fsReply *string
 					var reply []string
 					hashedKey := chord.HashString(commandTokens[1])
-					err := chord.Call(net.JoinHostPort(chord.GetLocalAddress(), port), "Server.FindSuccessor", hashedKey, &fsReply)
-					if err != nil {
-						return
-					}
-					err = chord.Call(*fsReply, "Server.Get", commandTokens[1], &reply)
-					if err != nil {
-						return
-					}
+					chord.Call(net.JoinHostPort(chord.GetLocalAddress(), port), "Server.FindSuccessor", hashedKey, &fsReply)
+					chord.Call(*fsReply, "Server.Get", commandTokens[1], &reply)
 					if reply != nil {
 						chord.PrintPrompt("Key value pair found: [" + reply[0] + "] = " + reply[1])
 					} else {
@@ -210,14 +183,8 @@ func main() {
 					var fsReply *string
 					var reply *int
 					hashedKey := chord.HashString(commandTokens[1])
-					err := chord.Call(net.JoinHostPort(chord.GetLocalAddress(), port), "Server.FindSuccessor", hashedKey, &fsReply)
-					if err != nil {
-						return
-					}
-					err = chord.Call(*fsReply, "Server.Delete", commandTokens[1], &reply)
-					if err != nil {
-						return
-					}
+					chord.Call(net.JoinHostPort(chord.GetLocalAddress(), port), "Server.FindSuccessor", hashedKey, &fsReply)
+					chord.Call(*fsReply, "Server.Delete", commandTokens[1], &reply)
 					if *reply == 1 {
 						chord.PrintPrompt("Delete successful")
 					} else {
@@ -229,24 +196,15 @@ func main() {
 				//Display information about the current node - dump
 			} else if commandTokens[0] == "dump" {
 				var reply *string
-				err := chord.Call(chord.GetLocalAddress()+":"+port, "Server.Dump", sendNothing, &reply)
-				if err != nil {
-					return
-				}
+				chord.Call(chord.GetLocalAddress()+":"+port, "Server.Dump", sendNothing, &reply)
 				fmt.Println(*reply)
 				//Display information about a node that owns a specific key - dump <key>
 			} else if commandTokens[0] == "dumpkey" {
 				if len(commandTokens) == 2 {
 					var fsReply, dumpReply *string
 					hashedKey := chord.HashString(commandTokens[1])
-					err := chord.Call(net.JoinHostPort(chord.GetLocalAddress(), port), "Server.FindSuccessor", hashedKey, &fsReply)
-					if err != nil {
-						return
-					}
-					err = chord.Call(*fsReply, "Server.Dump", sendNothing, &dumpReply)
-					if err != nil {
-						return
-					}
+					chord.Call(net.JoinHostPort(chord.GetLocalAddress(), port), "Server.FindSuccessor", hashedKey, &fsReply)
+					chord.Call(*fsReply, "Server.Dump", sendNothing, &dumpReply)
 					fmt.Println(*dumpReply)
 				} else {
 					chord.PrintPrompt("Number of arguments supplied incorrect - usage: dumpkey <key>")
@@ -257,15 +215,9 @@ func main() {
 					var pingReply *int
 					var reply *string
 					//Make sure the node is alive and listening first
-					err := chord.Call(commandTokens[1], "Server.Ping", sendNothing, &pingReply)
-					if err != nil {
-						return
-					}
+					chord.Call(commandTokens[1], "Server.Ping", sendNothing, &pingReply)
 					if pingReply != nil && *pingReply == 562 {
-						err := chord.Call(commandTokens[1], "Server.Dump", sendNothing, &reply)
-						if err != nil {
-							return
-						}
+						chord.Call(commandTokens[1], "Server.Dump", sendNothing, &reply)
 						chord.PrintPrompt(*reply)
 					} else {
 						chord.PrintPrompt("Unable to contact server: " + commandTokens[1])
@@ -282,14 +234,8 @@ func main() {
 				ringTraversed := false
 
 				for !ringTraversed {
-					err := chord.Call(gsReply[0], "Server.GetSuccessors", sendNothing, &gsReply)
-					if err != nil {
-						return
-					}
-					err = chord.Call(gsReply[0], "Server.Dump", sendNothing, &reply)
-					if err != nil {
-						return
-					}
+					chord.Call(gsReply[0], "Server.GetSuccessors", sendNothing, &gsReply)
+					chord.Call(gsReply[0], "Server.Dump", sendNothing, &reply)
 					fmt.Println(*reply)
 					if gsReply[0] == start {
 						ringTraversed = true
@@ -324,20 +270,11 @@ func main() {
 				var succBucket map[string]string
 				address := net.JoinHostPort(chord.GetLocalAddress(), port)
 				//Get successor
-				err := chord.Call(address, "Server.GetSuccessors", sendNothing, &gsReply)
-				if err != nil {
-					return
-				}
+				chord.Call(address, "Server.GetSuccessors", sendNothing, &gsReply)
 				//Get the bucket of this node
-				err = chord.Call(address, "Server.GetAll", sendNothing, &succBucket)
-				if err != nil {
-					return
-				}
+				chord.Call(address, "Server.GetAll", sendNothing, &succBucket)
 				//Push bucket to successor
-				err = chord.Call(gsReply[0], "Server.PutAll", succBucket, &success)
-				if err != nil {
-					return
-				}
+				chord.Call(gsReply[0], "Server.PutAll", succBucket, &success)
 				//Exit success
 				os.Exit(0)
 			} else {
@@ -350,9 +287,6 @@ func main() {
 	//Error handling
 	if err := scanner.Err(); err != nil {
 		chord.PrintPrompt()
-		_, err := fmt.Fprintln(os.Stderr, "Reading standard input:", err)
-		if err != nil {
-			return
-		}
+		fmt.Fprintln(os.Stderr, "Reading standard input:", err)
 	}
 }

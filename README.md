@@ -11,7 +11,9 @@ We’ll try to explain the basic implementation of  a p2p storage system
    2. The basic approach is to pass the query to a node’s successor, if it cannot find the key locally. 
    3. This will lead to a `O(N)` query time where N is the number of machines in the ring. 
    4. To avoid the linear search above, Chord implements a faster search method by requiring each node to keep a finger table containing up to m entries, recall that m is the number of bits in the hash key 
-   5. The i{th} entry of node n will contain successor `((n+2^{i-1}) mod 2^m)`. The first entry of finger table is actually the node’s immediate successor (and therefore an extra successor field is not needed). Every time a node wants to look up a key k, it will pass the query to the closest successor or predecessor (depending on the finger table) of k in its finger table (the “largest” one on the circle whose ID is smaller than k), until a node finds out the key is stored in its immediate successor. With such a finger table, the number of nodes that must be contacted to find a successor in an N-node network is `O(log N)`
+   5. The i{th} entry of node n will contain successor `((n+2^{i-1}) mod 2^m)`. 
+   6. The first entry of finger table is actually the node’s immediate successor (and therefore an extra successor field is not needed). 
+   7. Every time a node wants to look up a key k, it will pass the query to the closest successor or predecessor (depending on the finger table) of k in its finger table (the “largest” one on the circle whose ID is smaller than k), until a node finds out the key is stored in its immediate successor. With such a finger table, the number of nodes that must be contacted to find a successor in an N-node network is `O(log N)`
 
 ![chordDHT](https://github.com/snigdhasambitak/p2p-storage-cluster/blob/main/images/chordDHT.jpeg)
 

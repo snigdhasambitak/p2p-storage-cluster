@@ -4,22 +4,24 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strconv"
+	"time"
 	"math/big"
 	"net"
 	"net/http"
 	"net/rpc"
-	"strconv"
-	"time"
 )
 
-const (
-	MAXFINGERS    = 161
-	MAXSUCCESSORS = 3
-)
+//Size of this ring
 
-var biggest *big.Int //Size of this ring
+var biggest *big.Int
 var sendNothing Nothing
 var returnNothing *Nothing
+
+const (
+	maxFingers    = 161
+	maxSuccessors = 3
+)
 
 type Nothing struct{}
 
@@ -61,10 +63,7 @@ func CreateServer(n *Node) *Server {
 func Listen(s *Server) {
 	go s.recieverLoop()
 
-	err := rpc.Register(s)
-	if err != nil {
-		return 
-	}
+	rpc.Register(s)
 	rpc.HandleHTTP()
 	PrintPrompt()
 	fmt.Printf("RPC server is listening on port: %s\n", s.node.Port)
@@ -73,12 +72,7 @@ func Listen(s *Server) {
 		log.Fatal("Listen: Listen error:", e)
 	}
 	s.active = true
-	go func() {
-		err := http.Serve(l, nil)
-		if err != nil {
-			
-		}
-	}()
+	go http.Serve(l, nil)
 }
 
 func (s *Server) Create(_ Nothing, _ *Nothing) error {
@@ -107,8 +101,8 @@ func CreateNode(port string) *Node {
 			Address:     address,
 			Port:        port,
 			Predecessor: "",
-			Successors:  make([]string, MAXSUCCESSORS),
-			Fingers:     make([]string, MAXFINGERS),
+			Successors:  make([]string, maxSuccessors),
+			Fingers:     make([]string, maxFingers),
 			Bucket:      make(map[string]string)}
 	} else {
 		PrintPrompt("CreateNode: Node not created - port not specified")
@@ -125,15 +119,9 @@ func (s *Server) Join(address string, reply *int) error {
 	s.fx <- func(n *Node) {
 		n.Predecessor = ""
 		var nPrime *string
-		err := Call(address, "Server.Ping", sendNothing, &pingReply)
-		if err != nil {
-			return 
-		}
+		Call(address, "Server.Ping", sendNothing, &pingReply)
 		if pingReply != nil && *pingReply == 562 {
-			err := Call(address, "Server.FindSuccessor", HashString(net.JoinHostPort(n.Address, n.Port)), &nPrime)
-			if err != nil {
-				return 
-			}
+			Call(address, "Server.FindSuccessor", HashString(net.JoinHostPort(n.Address, n.Port)), &nPrime)
 			n.Successors[0] = *nPrime
 			successorSet = true
 		} else {
@@ -149,10 +137,7 @@ func (s *Server) Join(address string, reply *int) error {
 
 		go func() {
 			time.Sleep(4 * time.Second)
-			err := s.TransferAll(sendNothing, returnNothing)
-			if err != nil {
-				return 
-			}
+			s.TransferAll(sendNothing, returnNothing)
 		}()
 		*reply = 1
 	} else {
@@ -186,10 +171,7 @@ func (s *Server) FindSuccessor(id *big.Int, reply *string) error {
 	<-finished
 	if callFS {
 		nPrime = s.closestPrecedingNode(id)
-		err := Call(nPrime, "Server.FindSuccessor", id, &reply)
-		if err != nil {
-			return err
-		}
+		Call(nPrime, "Server.FindSuccessor", id, &reply)
 	}
 	return nil
 }
@@ -199,7 +181,7 @@ func (s *Server) closestPrecedingNode(id *big.Int) string {
 	between := false
 	finished := make(chan struct{})
 	s.fx <- func(n *Node) {
-		for i := MAXFINGERS - 1; i > 1; i-- {
+		for i := maxFingers - 1; i > 1; i-- {
 			if Between(n.ID, HashString(n.Fingers[i]), id, false) {
 				result = n.Fingers[i]
 				between = true
@@ -281,10 +263,7 @@ func (s *Server) TransferAll(_ Nothing, _ *Nothing) error {
 		finished <- struct{}{}
 	}
 	<-finished
-	err := Call(succ, "Server.GetAll", sendNothing, &succBucket)
-	if err != nil {
-		return err
-	}
+	Call(succ, "Server.GetAll", sendNothing, &succBucket)
 
 	finished2 := make(chan struct{})
 	//Get all keys between this node and successor
@@ -300,10 +279,7 @@ func (s *Server) TransferAll(_ Nothing, _ *Nothing) error {
 	<-finished2
 	//Now delete keys off successor that were added to this node so there are no duplicates
 	for _, v := range deleteKeys {
-		err := Call(succ, "Server.Delete", v, &reply)
-		if err != nil {
-			return err
-		}
+		Call(succ, "Server.Delete", v, &reply)
 	}
 	return nil
 }
@@ -352,7 +328,7 @@ func (s *Server) Dump(_ Nothing, reply *string) error {
 		//Just show finger entries that are different
 		buffer.WriteString("Fingers:")
 		var diffFinger string
-		for j := 1; j < MAXFINGERS; j++ {
+		for j := 1; j < maxFingers; j++ {
 			if i == 0 {
 				diffFinger = n.Fingers[j]
 				buffer.WriteString(" [" + fmt.Sprintf("%3d", j) + "] " +
@@ -402,7 +378,7 @@ func (s *Server) stabilize() {
 	var succPred *string
 	var succSnap, succSuccs []string
 	nodeSucc = ""
-	succSnap = make([]string, MAXSUCCESSORS)
+	succSnap = make([]string, maxSuccessors)
 
 	finished := make(chan struct{}, 1)
 	s.fx <- func(n *Node) {
@@ -414,10 +390,7 @@ func (s *Server) stabilize() {
 	}
 	<-finished
 
-	err := Call(nodeSucc, "Server.Ping", nothing, &alive)
-	if err != nil {
-		return 
-	}
+	Call(nodeSucc, "Server.Ping", nothing, &alive)
 
 	finished2 := make(chan struct{}, 1)
 	s.fx <- func(n *Node) {
@@ -434,14 +407,8 @@ func (s *Server) stabilize() {
 	}
 	<-finished2
 
-	err = Call(nodeSucc, "Server.GetPredecessor", nothing, &succPred)
-	if err != nil {
-		return 
-	}
-	err = Call(nodeSucc, "Server.GetSuccessors", nothing, &succSuccs)
-	if err != nil {
-		return 
-	}
+	Call(nodeSucc, "Server.GetPredecessor", nothing, &succPred)
+	Call(nodeSucc, "Server.GetSuccessors", nothing, &succSuccs)
 
 	finished3 := make(chan struct{}, 1)
 	s.fx <- func(n *Node) {
@@ -451,7 +418,7 @@ func (s *Server) stabilize() {
 		}
 
 		//Create list of successors
-		if len(succSuccs) >= MAXSUCCESSORS {
+		if len(succSuccs) >= maxSuccessors {
 			succSuccs = succSuccs[:len(succSuccs)-1]
 		}
 		succSuccs = append([]string{n.Successors[0]}, succSuccs...)
@@ -469,10 +436,7 @@ func (s *Server) stabilize() {
 		finished3 <- struct{}{}
 	}
 	<-finished3
-	err = Call(newSucc, "Server.Notify", currNode, &reply)
-	if err != nil {
-		return 
-	}
+	Call(newSucc, "Server.Notify", currNode, &reply)
 }
 
 func (s *Server) GetPredecessor(_ Nothing, predaddress *string) error {
@@ -508,10 +472,7 @@ func (s *Server) keepCheckingPredecessor() {
 	for {
 		select {
 		case <-interval:
-			err := s.checkPredecessor()
-			if err != nil {
-				return 
-			}
+			s.checkPredecessor()
 		}
 	}
 }
@@ -523,10 +484,7 @@ func (s *Server) checkPredecessor() error {
 			var nothing Nothing
 			var predreply *int
 			//Dial the predecessor
-			err := Call(n.Predecessor, "Server.Ping", nothing, &predreply)
-			if err != nil {
-				return 
-			}
+			Call(n.Predecessor, "Server.Ping", nothing, &predreply)
 			if predreply == nil || *predreply != 562 {
 				n.Predecessor = ""
 			}
@@ -542,10 +500,7 @@ func (s *Server) keepFixingFingers() {
 	for {
 		select {
 		case <-interval:
-			err := s.fixFingers()
-			if err != nil {
-				return 
-			}
+			s.fixFingers()
 		}
 	}
 }
@@ -566,10 +521,7 @@ func (s *Server) fixFingers() error {
 		finished <- struct{}{}
 	}
 	<-finished
-	err := s.FindSuccessor(jump(address, next), &reply)
-	if err != nil {
-		return err
-	}
+	s.FindSuccessor(jump(address, next), &reply)
 	finished2 := make(chan struct{})
 	s.fx <- func(n *Node) {
 		n.Fingers[n.next] = reply
