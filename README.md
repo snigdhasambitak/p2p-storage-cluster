@@ -1,6 +1,12 @@
 # p2p-storage-cluster
 A p2p storage cluster for sharing keys/files between multiple nodes in a cluster using consistent hashing and chord DHT
 
+# Team details 
+
+1. RABINDRA HARLALKA : 2020SC04947
+2. SOURAV RAJ : 2020SC04304
+3. Snigdha Sambit Aryakumar : 2020SC04738
+
 # Implementation Details
 
 We are trying to build a prototype of a distributed storage but using a P2P architecture. We are using a consistent hashing function for this. The Chord protocol we have used can support one operation: given a key, it will determine the node responsible for storing the key’s value. Chord does not itself store keys and values, but provides primitives that allow higher-layer software to build a wide variety of storage system; CFS is one such use of the Chord primitive.
